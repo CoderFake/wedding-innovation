@@ -71,6 +71,7 @@ class GuestResponse(BaseModel):
     user_relationship: str
     confirm: bool
     guest_url: Optional[str] = None
+    is_demo: bool = False
     created_at: datetime
     updated_at: datetime
     

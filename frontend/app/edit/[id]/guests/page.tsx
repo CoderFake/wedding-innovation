@@ -12,6 +12,7 @@ interface Guest {
   user_relationship: string
   confirm: boolean
   guest_url?: string
+  is_demo?: boolean
   created_at?: string
 }
 
@@ -108,8 +109,8 @@ export default function GuestsManagementPage() {
     }
   }
 
-  const isFirstGuest = (index: number) => {
-    return currentPage === 1 && index === 0
+  const isFirstGuest = (guest: Guest) => {
+    return guest.is_demo === true
   }
 
   return (
@@ -203,7 +204,7 @@ export default function GuestsManagementPage() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {guest.name}
-                        {isFirstGuest(index) && (
+                        {isFirstGuest(guest) && (
                           <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
                             Demo
                           </span>
@@ -249,7 +250,7 @@ export default function GuestsManagementPage() {
                         >
                           Sửa
                         </button>
-                        {!isFirstGuest(index) && (
+                        {!isFirstGuest(guest) && (
                           <button
                             onClick={() => deleteGuest(guest.id)}
                             className="text-red-600 hover:text-red-800"

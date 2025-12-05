@@ -1174,10 +1174,15 @@ async def get_guests(
     pages = (total + size - 1) // size
     
     subdomain = current_user.subdomain or 'wedding'
+    
+    demo_guest = await GuestService.get_first_guest(db, intro.id)
+    demo_guest_id = demo_guest.id if demo_guest else None
+    
     guest_responses = []
     for guest in guests:
         guest_dict = GuestResponse.model_validate(guest).model_dump()
         guest_dict['guest_url'] = f"https://{subdomain}.{settings.FRONTEND_BASE_DOMAIN}/{guest.id}"
+        guest_dict['is_demo'] = (guest.id == demo_guest_id)
         guest_responses.append(GuestResponse(**guest_dict))
     
     return PaginatedResponse(
