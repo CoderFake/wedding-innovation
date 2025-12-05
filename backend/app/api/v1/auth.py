@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from urllib.parse import urlparse
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, get_current_root_user
@@ -14,45 +13,9 @@ from app.utils.auth import decode_access_token, create_access_token
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-def get_redirect_url_for_user(user: User, request: Request) -> str | None:
-    """
-    Generate redirect URL based on user role and subdomain.
-    - ROOT users stay on main domain /dashboard
-    - USER users redirect to their subdomain
-    """
-    if user.role == UserRole.ROOT:
-        return None  # Stay on current domain
-    
-    if not user.subdomain:
-        return None
-    
-    # Get base domain from Origin or Referer header
-    origin = request.headers.get("Origin") or request.headers.get("Referer")
-    if not origin:
-        return None
-    
-    parsed = urlparse(origin)
-    host_parts = parsed.netloc.split('.')
-    
-    # Determine the base domain (remove any existing subdomain)
-    if len(host_parts) >= 2:
-        # e.g., demo-wedding.hoangdieuit.io.vn -> hoangdieuit.io.vn
-        # or thetai.demo-wedding.hoangdieuit.io.vn -> demo-wedding.hoangdieuit.io.vn
-        base_domain = '.'.join(host_parts[-3:]) if len(host_parts) >= 3 else '.'.join(host_parts)
-    else:
-        base_domain = parsed.netloc
-    
-    # Build redirect URL with user's subdomain
-    scheme = parsed.scheme or 'https'
-    redirect_url = f"{scheme}://{user.subdomain}.{base_domain}/dashboard"
-    
-    return redirect_url
-
-
 @router.post("/login", response_model=TokenResponse)
 async def login(
     login_data: UserLoginRequest,
-    request: Request,
     db: AsyncSession = Depends(get_db)
 ):
     """Login and get access token."""
@@ -65,14 +28,11 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Generate redirect URL for user
-    redirect_url = get_redirect_url_for_user(user, request)
-    
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         user=UserResponse.model_validate(user),
-        redirect_url=redirect_url
+        redirect_url=None
     )
 
 

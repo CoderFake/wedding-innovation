@@ -50,6 +50,7 @@ async function validateSubdomain(subdomain: string): Promise<boolean> {
 }
 
 const ADMIN_ROUTES = ['/login', '/admin', '/dashboard', '/edit', '/preview']
+const UUID_PATTERN = /^\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
@@ -73,6 +74,9 @@ export async function middleware(request: NextRequest) {
   }
   
   if (!subdomain) {
+    if (UUID_PATTERN.test(pathname)) {
+      return NextResponse.rewrite(new URL('/not-found', request.url))
+    }
     return NextResponse.next()
   }
   

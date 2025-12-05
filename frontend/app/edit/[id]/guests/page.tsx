@@ -224,15 +224,19 @@ export default function GuestsManagementPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <button
                           onClick={() => {
-                            const guestUrl = `${window.location.origin}/${guest.id}`
-                            navigator.clipboard.writeText(guestUrl)
-                            setCopiedGuestId(guest.id)
-                            setTimeout(() => setCopiedGuestId(null), 2000)
+                            if (guest.guest_url) {
+                              navigator.clipboard.writeText(guest.guest_url)
+                              setCopiedGuestId(guest.id)
+                              setTimeout(() => setCopiedGuestId(null), 2000)
+                            }
                           }}
+                          disabled={!guest.guest_url}
                           className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                             copiedGuestId === guest.id
                               ? 'bg-green-100 text-green-700'
-                              : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                              : guest.guest_url 
+                                ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                         >
                           {copiedGuestId === guest.id ? '✓ Đã sao chép!' : '📋 Sao chép link'}

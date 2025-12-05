@@ -1,8 +1,9 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { publicFetch } from '@/lib/config'
+import { publicFetch, getSubdomainFromUrl } from '@/lib/config'
 import IntroPage from '@/components/IntroPage'
 import Header from '@/components/Header'
 import FamilySection from '@/components/FamilySection'
@@ -59,14 +60,22 @@ interface LandingPageData {
 
 export default function PublicWeddingPage({ params }: { params: Promise<{ guestId: string }> }) {
   const resolvedParams = use(params)
+  const router = useRouter()
   const [data, setData] = useState<LandingPageData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [introComplete, setIntroComplete] = useState(false)
 
   useEffect(() => {
+    // Landing page requires subdomain - redirect to 404 if no subdomain
+    const subdomain = getSubdomainFromUrl()
+    if (!subdomain) {
+      router.replace('/not-found')
+      return
+    }
+    
     fetchWeddingData()
-  }, [resolvedParams.guestId])
+  }, [resolvedParams.guestId, router])
 
   const fetchWeddingData = async () => {
     try {
