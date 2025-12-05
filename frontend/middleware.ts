@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 const SYSTEM_SUBDOMAINS = ['www', 'api', 'admin', 'mail', 'ftp', 'cpanel']
 
 const PUBLIC_ROUTES = ['/login', '/admin', '/dashboard', '/edit', '/preview', '/_next', '/favicon.ico', '/img', '/font', '/music']
-const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'hoangdieuit.io.vn'
+const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'd-wedding.love'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:18600/api/v1'
 
 /**
@@ -17,7 +17,7 @@ function getSubdomain(hostname: string): string | null {
   }
   
   const parts = host.split('.')
-  if (parts.length >= 4) {
+  if (parts.length >= 3) {
     const subdomain = parts[0].toLowerCase()
     
     if (!SYSTEM_SUBDOMAINS.includes(subdomain)) {
@@ -49,14 +49,12 @@ async function validateSubdomain(subdomain: string): Promise<boolean> {
   }
 }
 
+const ADMIN_ROUTES = ['/login', '/admin', '/dashboard', '/edit', '/preview']
+
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
   const pathname = request.nextUrl.pathname
   const subdomain = getSubdomain(hostname)
-  
-  if (!subdomain) {
-    return NextResponse.next()
-  }
   
   if (pathname.startsWith('/_next') || 
       pathname.startsWith('/favicon') ||
@@ -64,6 +62,17 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/font') ||
       pathname.startsWith('/music') ||
       pathname.includes('.')) {
+    return NextResponse.next()
+  }
+  
+  const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route))
+  if (subdomain && isAdminRoute) {
+    const mainDomainUrl = new URL(request.url)
+    mainDomainUrl.hostname = BASE_DOMAIN
+    return NextResponse.redirect(mainDomainUrl)
+  }
+  
+  if (!subdomain) {
     return NextResponse.next()
   }
   

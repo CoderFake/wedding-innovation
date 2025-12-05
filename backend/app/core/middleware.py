@@ -8,57 +8,45 @@ from config.settings import settings
 
 class DynamicCORSMiddleware(BaseHTTPMiddleware):
     """
-    Custom CORS middleware that validates origin by comparing base domain.
-    If origin's base domain matches BACKEND_URL's base domain, allow it.
-    Also allows localhost for development.
+    Custom CORS middleware that allows:
+    - FRONTEND_BASE_DOMAIN and all its subdomains (*.d-wedding.love)
+    - localhost for development
     """
     
     def __init__(self, app):
         super().__init__(app)
-        # Extract base domain from BACKEND_URL (remove trailing slash if any)
-        backend_url = settings.BACKEND_URL.rstrip('/')
-        parsed = urlparse(backend_url)
-        self.backend_domain = self._get_base_domain(parsed.netloc)
-    
-    def _get_base_domain(self, hostname: str) -> str:
-        """
-        Get base domain by removing subdomain.
-        Examples:
-        - demo-wedding.hoangdieuit.io.vn -> hoangdieuit.io.vn
-        - hoangdieuit.io.vn -> hoangdieuit.io.vn
-        - localhost:3000 -> localhost
-        """
-        # Remove port if present
-        host = hostname.split(':')[0]
-        parts = host.split('.')
-        
-        # For domains like hoangdieuit.io.vn (3+ parts), take last 3
-        # For domains like example.com (2 parts), take all
-        if len(parts) >= 3:
-            return '.'.join(parts[-3:])
-        return host
+        # Get frontend base domain (e.g., "d-wedding.love")
+        self.frontend_domain = settings.FRONTEND_BASE_DOMAIN.lower().strip()
     
     def is_origin_allowed(self, origin: str) -> bool:
         """
-        Check if origin is allowed by comparing base domain.
+        Check if origin is allowed.
+        Allows:
+        - Exact match: d-wedding.love
+        - Wildcard subdomains: *.d-wedding.love
+        - localhost for development
         """
         if not origin:
             return False
         
-        # Remove trailing slash
         origin = origin.rstrip('/')
         
         try:
             parsed = urlparse(origin)
-            hostname = parsed.netloc
+            hostname = parsed.netloc.lower()
             
-            # Allow localhost and 127.0.0.1 for development
             if hostname.startswith('localhost') or hostname.startswith('127.0.0.1'):
                 return True
             
-            # Get base domain of origin and compare with backend domain
-            origin_base_domain = self._get_base_domain(hostname)
-            return origin_base_domain == self.backend_domain
+            host = hostname.split(':')[0]
+            
+            if host == self.frontend_domain:
+                return True
+            
+            if host.endswith('.' + self.frontend_domain):
+                return True
+            
+            return False
             
         except Exception:
             return False
@@ -66,7 +54,6 @@ class DynamicCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         origin = request.headers.get("origin", "")
         
-        # Handle preflight OPTIONS request
         if request.method == "OPTIONS":
             if self.is_origin_allowed(origin):
                 return Response(
@@ -82,10 +69,8 @@ class DynamicCORSMiddleware(BaseHTTPMiddleware):
             else:
                 return Response(status_code=403)
         
-        # Process normal request
         response = await call_next(request)
         
-        # Add CORS headers if origin is allowed
         if self.is_origin_allowed(origin):
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"

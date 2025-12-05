@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     ROOT_PASSWORD: Optional[str] = None
 
 
-    FRONTEND_BASE_DOMAIN: str = "hoangdieuit.io.vn"
+    FRONTEND_BASE_DOMAIN: str = "d-wedding.love"
 
     BACKEND_URL: str = "https://hoangdieuit.io.vn"
 

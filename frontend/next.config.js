@@ -16,7 +16,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'demo-wedding-backend.hoangdieuit.io.vn',
+        hostname: 'wedding-backend.hoangdieuit.io.vn',
         pathname: '/static/**',
       },
     ],
