@@ -4,6 +4,12 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Wedding Invitation',
   description: 'You are invited to our wedding celebration',
+  icons: {
+    icon: [
+      { url: '/img/spiral-hearts.png', type: 'image/png' },
+    ],
+    apple: '/img/spiral-hearts.png',
+  },
 }
 
 export const viewport: Viewport = {
