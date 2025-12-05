@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Envelope body -->
+  <rect x="4" y="16" width="56" height="40" rx="3" fill="#FFF5F5" stroke="#E91E63" stroke-width="2"/>
+  
+  <!-- Envelope flap (top triangle) -->
+  <path d="M4 16 L32 38 L60 16" fill="none" stroke="#E91E63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Heart seal -->
+  <path d="M32 28 C32 24 28 20 24 20 C18 20 18 28 18 28 C18 36 32 44 32 44 C32 44 46 36 46 28 C46 28 46 20 40 20 C36 20 32 24 32 28Z" fill="#E91E63"/>
+  
+  <!-- Small decorative hearts -->
+  <circle cx="12" cy="50" r="2" fill="#F8BBD9"/>
+  <circle cx="52" cy="50" r="2" fill="#F8BBD9"/>
+  
+  <!-- Sparkles -->
+  <path d="M8 10 L10 14 L8 18 L6 14 Z" fill="#FFD700"/>
+  <path d="M56 8 L58 12 L56 16 L54 12 Z" fill="#FFD700"/>
+</svg>

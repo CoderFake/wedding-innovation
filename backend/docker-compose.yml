@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: wedding_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-wedding_db}
+      MYSQL_USER: ${MYSQL_USER:-wedding_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-wedding_pass}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "13306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+    networks:
+      - wedding_network
+
+  backend:
+    build: .
+    container_name: wedding_backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-wedding_user}:${MYSQL_PASSWORD:-wedding_pass}@mysql:3306/${MYSQL_DATABASE:-wedding_db}?charset=utf8mb4
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ROOT_USERNAME: ${ROOT_USERNAME:-admin}
+      ROOT_PASSWORD: ${ROOT_PASSWORD:-admin123}
+      ENV: ${ENV:-dev}
+      DEBUG: ${DEBUG:-true}
+      PORT: 8000
+      WORKERS: ${WORKERS:-4}
+      MAX_REQUESTS: ${MAX_REQUESTS:-1000}
+      MAX_REQUESTS_JITTER: ${MAX_REQUESTS_JITTER:-100}
+      TIMEOUT: ${TIMEOUT:-120}
+      GRACEFUL_TIMEOUT: ${GRACEFUL_TIMEOUT:-60}
+      KEEP_ALIVE: ${KEEP_ALIVE:-5}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "18600:8000"
+    volumes:
+      - ./static:/app/static
+      - ./app:/app/app
+      - ./config:/app/config
+      - ./main.py:/app/main.py
+    networks:
+      - wedding_network
+    command: sh -c "sleep 10 && ./start.sh"
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  wedding_network:
+    driver: bridge
